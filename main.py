@@ -53,9 +53,37 @@ fig1.update_traces(
 
 st.plotly_chart(fig1, use_container_width=True)
 
-# 그래프 하단 구역 구분 및 알 수 있는 점 정리
+# 그래프 1 하단 설명
 st.markdown("---")
 st.subheader("💡 이 그래프로 알 수 있는 것")
 st.write(
     "박스오피스 상위권 영화 중 특정 주요 장르가 차지하는 비중과 장르별 다양성의 분포 형태를 직관적으로 파악할 수 있습니다."
+)
+
+st.write("<br><br>", unsafe_allow_html=True)
+
+# --- 두 번째 그래프 Section ---
+st.header("2. 장르 및 영화별 총 관객 수 트리맵")
+
+# Plotly 트리맵 그래프 생성 (계층: 장르 -> 영화명, 크기: 총 관객)
+fig2 = px.treemap(
+    df,
+    path=[px.Constant("전체"), "genre", "movieNm"],
+    values="total_audi",
+    title="장르 및 영화별 총 관객 수 분포",
+    color="genre",
+)
+
+# 마우스 호버 시 영화명과 총 관객 수가 명확히 보이도록 설정
+fig2.update_traces(
+    hovertemplate="<b>%{label}</b><br>총 관객 수: %{value:,}명<extra></extra>"
+)
+
+st.plotly_chart(fig2, use_container_width=True)
+
+# 그래프 2 하단 설명
+st.markdown("---")
+st.subheader("💡 이 그래프로 알 수 있는 것")
+st.write(
+    "각 장르가 전체 관객 수에서 차지하는 비중과 해당 장르 내에서 흥행을 견인한 대표 영화들의 관객 수 기여도를 한눈에 비교할 수 있습니다."
 )
