@@ -220,3 +220,59 @@ st.plotly_chart(fig5, use_container_width=True)
 
 # 그래프 설명문
 st.caption("💡 **이 그래프로 알 수 있는 것:** 월 단위 총 관객수 비교를 통해 어느 달에 극장가 이용객이 집중되었는지 월별 성수기 및 비성수기 규모를 명확히 비교할 수 있습니다.")
+
+st.divider()  # 구역 구분선
+
+# -------------------------------------------------------------------
+# [여섯 번째 구역] 캘린더 히트맵 (월/주차 x 요일별 관객수)
+# -------------------------------------------------------------------
+st.header("6. 요일 및 월별 관객수 캘린더 히트맵")
+
+# 1. 날짜 데이터 전처리: 월, 요일, 날짜 텍스트 추출
+calendar_df = daily_total.copy()
+
+# yyyy-mm-dd 형식의 날짜 문자열 컬럼 (호버 툴팁용)
+calendar_df['날짜_str'] = calendar_df['기준일자'].dt.strftime('%Y-%m-%d')
+
+# 월(Month) 구분 (예: 2023-05)
+calendar_df['월'] = calendar_df['기준일자'].dt.strftime('%Y-%m')
+
+# 요일 추출 및 월요일~일요일 순서 정렬을 위한 범주형(Categorical) 변수 설정
+weekdays_ko = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일']
+calendar_df['요일'] = calendar_df['기준일자'].dt.day_name().map({
+    'Monday': '월요일', 'Tuesday': '화요일', 'Wednesday': '수요일',
+    'Thursday': '목요일', 'Friday': '금요일', 'Saturday': '토요일', 'Sunday': '일요일'
+})
+calendar_df['요일'] = pd.Categorical(calendar_df['요일'], categories=weekdays_ko, ordered=True)
+
+# 2. Plotly density_heatmap으로 히트맵 생성
+fig6 = px.density_heatmap(
+    calendar_df,
+    x='요일',
+    y='월',
+    z='해당일관객수',
+    histfunc='sum',
+    color_continuous_scale='Reds',  # 관객수가 많을수록 진한 빨간색
+    hover_data={'날짜_str': True, '해당일관객수': ':,', '요일': False, '월': False},
+    title="월 x 요일별 일일 총 관객수 분포 히트맵",
+    labels={
+        '요일': '요일', 
+        '월': '월(Year-Month)', 
+        '해당일관객수': '일관객 합계(명)', 
+        '날짜_str': '날짜'
+    }
+)
+
+# 호버 툴팁 포맷 설정 (마우스 올렸을 때 yyyy-mm-dd 표시)
+fig6.update_traces(
+    hovertemplate="<b>날짜: %{customdata[0]}</b><br>월: %{y}<br>요일: %{x}<br>관객수: %{z:,}명<extra></extra>"
+)
+
+# Y축 레이아웃 설정 (월 순서 고정)
+fig6.update_layout(yaxis=dict(autorange="reversed"))
+
+# 그래프 화면에 출력
+st.plotly_chart(fig6, use_container_width=True)
+
+# 그래프 설명문
+st.caption("💡 **이 그래프로 알 수 있는 것:** 월별 및 요일별(월~일) 관객 수 집중도를 한눈에 비교하여, 관객수가 가장 몰리는 특정 요일 패턴 및 계절별 피크 데이를 시각적으로 파악할 수 있습니다.")
