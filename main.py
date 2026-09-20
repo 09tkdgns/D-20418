@@ -21,6 +21,13 @@ def load_data():
         df["genre"].astype(str).apply(lambda x: x.split("|")[0].strip())
     )
 
+    # 시기(period) 생성: openDt(YYYYMMDD 형태)에서 개봉 월(Month)을 추출하여 'MM월' 형식으로 전처리
+    # 예: 20230115 -> '01월'
+    df["openDt_str"] = df["openDt"].astype(str)
+    df["period"] = df["openDt_str"].apply(
+        lambda x: f"{int(x[4:6]):02d}월" if len(x) >= 6 else "미상"
+    )
+
     return df
 
 
@@ -227,7 +234,6 @@ st.write("<br><br>", unsafe_allow_html=True)
 # --- 일곱 번째 그래프 Section ---
 st.header("7. 제작 국가 및 장르별 영화 편수 선버스트 차트")
 
-# 국가(nation) -> 장르(genre) 계층 구조 선버스트 생성
 fig7 = px.sunburst(
     df,
     path=["nation", "genre"],
@@ -246,4 +252,42 @@ st.divider()
 st.subheader("💡 이 그래프로 알 수 있는 것")
 st.write(
     "주요 제작 국가별 전체 영화 수 공급 비중과, 각 국가가 주로 제작·수입하는 장르의 편수 다각화 특성을 동심원 계층 구조로 한눈에 파악할 수 있습니다."
+)
+
+st.write("<br><br>", unsafe_allow_html=True)
+
+# --- 여덟 번째 그래프 Section ---
+st.header("8. 장르와 시기에 관계")
+
+# 월별 순서 정렬 (01월 ~ 12월)
+period_order = [f"{i:02d}월" for i in range(1, 13)]
+
+# Plotly 산점도 생성 (x: 장르, y: 시기, hover: 마우스에 장르명 및 영화명 표출)
+fig8 = px.scatter(
+    df,
+    x="genre",
+    y="period",
+    color="genre",
+    hover_name="movieNm",
+    title="장르와 시기에 관계",
+    labels={"genre": "장르", "period": "개봉 시기"},
+    category_orders={"period": period_order},
+)
+
+# 점 밀집도를 구분하기 쉽게 마커 크기와 투명도 조절 및 호버 템플릿 설정 (장르명 포함)
+fig8.update_traces(
+    marker=dict(size=10, opacity=0.7),
+    hovertemplate="<b>영화명: %{hovertext}</b><br>장르: %{x}<br>개봉 시기: %{y}<extra></extra>",
+)
+
+# y축 레이아웃 설정
+fig8.update_yaxes(autorange="reversed")  # 1월이 위로 오도록 정렬
+
+st.plotly_chart(fig8, use_container_width=True, key="chart8")
+
+# 그래프 8 하단 설명
+st.divider()
+st.subheader("💡 이 그래프로 알 수 있는 것")
+st.write(
+    "특정 장르(예: 여름/겨울 성수기의 액션·애니메이션 등)가 연중 특정 개봉 시기(월)에 집중되어 개봉하는 경향이나 계절적 분포 패턴을 확인할 수 있습니다."
 )
