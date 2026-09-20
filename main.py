@@ -192,7 +192,6 @@ st.write("<br><br>", unsafe_allow_html=True)
 # --- 여섯 번째 그래프 Section ---
 st.header("6. 스크린 수·첫 주 관객·총 관객 수 관계 (버블 차트)")
 
-# 버블 차트 생성 (x: 개봉일 스크린수, y: 총 관객수, size: 첫 주 관객수)
 fig6 = px.scatter(
     df,
     x="first_scrn",
@@ -200,7 +199,7 @@ fig6 = px.scatter(
     size="first_week_audi",
     color="genre",
     hover_name="movieNm",
-    size_max=45,  # 버블 최대 크기 지정
+    size_max=45,
     title="개봉일 스크린 수 vs 총 관객 수 (원 크기: 개봉 첫 주 관객 수)",
     labels={
         "first_scrn": "개봉일 스크린 수(개)",
@@ -221,4 +220,30 @@ st.divider()
 st.subheader("💡 이 그래프로 알 수 있는 것")
 st.write(
     "초기 스크린 확보량이 많고 첫 주 관객(버블 크기)이 몰린 영화일수록 최종 총 관객 수 역시 비례하여 증가하는 경향이 뚜렷하며, 초반 흥행 몰이의 기세가 최종 성패에 결정적인 영향을 미친다는 점을 알 수 있습니다."
+)
+
+st.write("<br><br>", unsafe_allow_html=True)
+
+# --- 일곱 번째 그래프 Section ---
+st.header("7. 제작 국가 및 장르별 영화 편수 선버스트 차트")
+
+# 국가(nation) -> 장르(genre) 계층 구조 선버스트 생성
+fig7 = px.sunburst(
+    df,
+    path=["nation", "genre"],
+    title="제작 국가별 장르 구성 및 영화 편수",
+    color="nation",
+)
+
+fig7.update_traces(
+    hovertemplate="<b>%{label}</b><br>영화 편수: %{value}편<br>상위 항목 대비 비율: %{percentParent:.1%}<extra></extra>"
+)
+
+st.plotly_chart(fig7, use_container_width=True, key="chart7")
+
+# 그래프 7 하단 설명
+st.divider()
+st.subheader("💡 이 그래프로 알 수 있는 것")
+st.write(
+    "주요 제작 국가별 전체 영화 수 공급 비중과, 각 국가가 주로 제작·수입하는 장르의 편수 다각화 특성을 동심원 계층 구조로 한눈에 파악할 수 있습니다."
 )
