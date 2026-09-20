@@ -50,7 +50,6 @@ fig1.update_traces(
     hovertemplate="<b>장르: %{label}</b><br>편수: %{value}편<br>비율: %{percent}<extra></extra>",
 )
 
-# key="chart1" 추가로 중복 ID 오류 방지
 st.plotly_chart(fig1, use_container_width=True, key="chart1")
 
 # 그래프 1 하단 설명
@@ -77,7 +76,6 @@ fig2.update_traces(
     hovertemplate="<b>%{label}</b><br>총 관객 수: %{value:,}명<extra></extra>"
 )
 
-# key="chart2" 추가
 st.plotly_chart(fig2, use_container_width=True, key="chart2")
 
 # 그래프 2 하단 설명
@@ -104,7 +102,6 @@ fig3.update_traces(
     hovertemplate="관객 수 구간: %{x:,}명<br>영화 수: %{y}편<extra></extra>"
 )
 
-# key="chart3" 추가
 st.plotly_chart(fig3, use_container_width=True, key="chart3")
 
 # 최다 관객 영화 정보 동적 추출
@@ -144,7 +141,6 @@ fig4.update_traces(
     hovertemplate="<b>%{hovertext}</b><br>개봉일 스크린 수: %{x:,}개<br>총 관객 수: %{y:,}명<extra></extra>"
 )
 
-# key="chart4" 추가
 st.plotly_chart(fig4, use_container_width=True, key="chart4")
 
 # 그래프 4 하단 설명
@@ -152,4 +148,43 @@ st.divider()
 st.subheader("💡 이 그래프로 알 수 있는 것")
 st.write(
     "개봉일 스크린 수가 많을수록 총 관객 수도 증가하는 양의 상관관계를 보이며, 초기 스크린 확보량이 흥행의 중요 요소임을 알 수 있습니다."
+)
+
+st.write("<br><br>", unsafe_allow_html=True)
+
+# --- 다섯 번째 그래프 Section ---
+st.header("5. 주요 장르별 총 관객 수 박스플롯 (10편 이상 장르)")
+
+# 영화 수가 10편 이상인 장르 필터링
+genre_counts_series = df["genre"].value_counts()
+major_genres = genre_counts_series[genre_counts_series >= 10].index
+df_filtered = df[df["genre"].isin(major_genres)]
+
+# Plotly 박스플롯 생성 (hover_name으로 마우스 호버 시 영화명 표시)
+fig5 = px.box(
+    df_filtered,
+    x="genre",
+    y="total_audi",
+    color="genre",
+    hover_name="movieNm",
+    title="주요 장르별 총 관객 수 분포 및 이상치",
+    labels={
+        "genre": "장르",
+        "total_audi": "총 관객 수(명)",
+    },
+    points="outliers",  # 이상치 점 표출
+)
+
+# 호버 서식 추가 (이상치 점 및 박스에 영화명과 관객 수 정보가 잘 드러나도록 함)
+fig5.update_traces(
+    hovertemplate="<b>%{hovertext}</b><br>장르: %{x}<br>관객 수: %{y:,}명<extra></extra>"
+)
+
+st.plotly_chart(fig5, use_container_width=True, key="chart5")
+
+# 그래프 5 하단 설명
+st.divider()
+st.subheader("💡 이 그래프로 알 수 있는 것")
+st.write(
+    "주요 장르 간 중앙값 비교를 통해 평균적인 흥행 규모를 비교할 수 있으며, 박스 상단 밖으로 떨어진 이상치(Outlier) 점들을 통해 장르 평균을 뛰어넘어 초대형 대박을 터뜨린 대작 영화들을 식별할 수 있습니다."
 )
