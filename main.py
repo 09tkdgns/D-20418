@@ -22,7 +22,6 @@ def load_data():
     )
 
     # 시기(period) 생성: openDt(YYYYMMDD 형태)에서 개봉 월(Month)을 추출하여 'MM월' 형식으로 전처리
-    # 예: 20230115 -> '01월'
     df["openDt_str"] = df["openDt"].astype(str)
     df["period"] = df["openDt_str"].apply(
         lambda x: f"{int(x[4:6]):02d}월" if len(x) >= 6 else "미상"
@@ -38,11 +37,9 @@ st.divider()
 # --- 첫 번째 그래프 Section ---
 st.header("1. 장르별 영화 편수 분포")
 
-# 장르별 편수 집계
 genre_counts = df["genre"].value_counts().reset_index()
 genre_counts.columns = ["장르", "편수"]
 
-# Plotly 도넛 그래프 생성
 fig1 = px.pie(
     genre_counts,
     values="편수",
@@ -162,7 +159,6 @@ st.write("<br><br>", unsafe_allow_html=True)
 # --- 다섯 번째 그래프 Section ---
 st.header("5. 주요 장르별 총 관객 수 박스플롯 (10편 이상 장르)")
 
-# 영화 수가 10편 이상인 장르 필터링
 genre_counts_series = df["genre"].value_counts()
 major_genres = genre_counts_series[genre_counts_series >= 10].index
 df_filtered = df[df["genre"].isin(major_genres)]
@@ -257,31 +253,29 @@ st.write(
 st.write("<br><br>", unsafe_allow_html=True)
 
 # --- 여덟 번째 그래프 Section ---
-st.header("8. 장르와 시기에 관계")
+st.header("8. 장르와 시기의 상관관계")
 
-# 월별 순서 정렬 (01월 ~ 12월)
+# 장르 x 개봉 시기(월) 피벗 테이블 생성 (영화 편수 집계)
 period_order = [f"{i:02d}월" for i in range(1, 13)]
-
-# Plotly 산점도 생성 (x: 장르, y: 시기, hover: 마우스에 장르명 및 영화명 표출)
-fig8 = px.scatter(
-    df,
-    x="genre",
-    y="period",
-    color="genre",
-    hover_name="movieNm",
-    title="장르와 시기에 관계",
-    labels={"genre": "장르", "period": "개봉 시기"},
-    category_orders={"period": period_order},
+heatmap_data = (
+    df.groupby(["period", "genre"]).size().unstack(fill_value=0).reindex(period_order)
 )
 
-# 점 밀집도를 구분하기 쉽게 마커 크기와 투명도 조절 및 호버 템플릿 설정 (장르명 포함)
+# Plotly 히트맵 생성 (x: 장르, y: 개봉 시기)
+fig8 = px.imshow(
+    heatmap_data,
+    labels=dict(x="장르", y="개봉 시기", color="영화 편수"),
+    x=heatmap_data.columns,
+    y=heatmap_data.index,
+    title="장르와 시기의 상관관계",
+    color_continuous_scale="Blues",
+    text_auto=True,  # 셀 안에 숫자(편수) 표시
+)
+
+# 마우스 호버 시 장르명, 개봉 시기, 편수가 보이도록 설정
 fig8.update_traces(
-    marker=dict(size=10, opacity=0.7),
-    hovertemplate="<b>영화명: %{hovertext}</b><br>장르: %{x}<br>개봉 시기: %{y}<extra></extra>",
+    hovertemplate="<b>장르명: %{x}</b><br>개봉 시기: %{y}<br>영화 편수: %{z}편<extra></extra>"
 )
-
-# y축 레이아웃 설정
-fig8.update_yaxes(autorange="reversed")  # 1월이 위로 오도록 정렬
 
 st.plotly_chart(fig8, use_container_width=True, key="chart8")
 
@@ -289,5 +283,5 @@ st.plotly_chart(fig8, use_container_width=True, key="chart8")
 st.divider()
 st.subheader("💡 이 그래프로 알 수 있는 것")
 st.write(
-    "특정 장르(예: 여름/겨울 성수기의 액션·애니메이션 등)가 연중 특정 개봉 시기(월)에 집중되어 개봉하는 경향이나 계절적 분포 패턴을 확인할 수 있습니다."
+    "히트맵의 색상 농도를 통해 특정 장르가 연중 어느 월(시기)에 집중되어 개봉하는지 밀집도를 직관적으로 파악할 수 있으며, 장르별 개봉 시기의 상호 연관성을 비교 분석할 수 있습니다."
 )
